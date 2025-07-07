@@ -1,28 +1,54 @@
-import torch # 引入 PyTorch 库
+import torch
+from model import Transformer
 
-# 1. 创建张量 (就像在C里声明和初始化一个多维数组)
-# 相当于 C 的 int arr[2][3] = {{1,2,3}, {4,5,6}};
-x = torch.tensor([[1, 2, 3],
-                  [4, 5, 6]])
-print("张量 x:\n",x)
+def generate_square_subsequent_mask(sz: int):
+    """
+    生成一个方阵掩码，其中上三角部分为 False。
+    True 代表这个位置的词是可见的。
+    """
+    # torch.triu 会生成一个上三角矩阵
+    # (torch.triu(torch.ones(sz, sz)) == 1) 会得到一个上三角为True，其余为False的矩阵
+    # .transpose(0, 1) 将其变为下三角为True
+    mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
+    return mask
 
-# 2. 查看形状和类型 (非常重要的调试手段)
-print("x 的形状:", x.shape)   # 输出 torch.Size([2, 3])
-print("x 的数据类型:", x.dtype) # 输出 torch.int64
+def run_test():
+    # 1. 定义超参数
+    vocab_size = 10000  # 词汇表大小
+    d_model = 512       # 模型维度
+    num_layers = 6      # 编码器和解码器的层数
+    num_heads = 8       # 多头注意力的头数
+    d_ff = 2048         # 前馈网络的隐藏层维度
+    dropout = 0.1
 
-# 3. 创建特定形状的张量
-zeros_tensor = torch.zeros(3, 4) # 创建一个 3x4 的全零张量
-ones_tensor = torch.ones(3, 4)   # 创建一个 3x4 的全一张量
-rand_tensor = torch.rand(3, 4)   # 创建一个 3x4 的随机张量
+    # 2. 实例化模型
+    model = Transformer(num_layers, d_model, num_heads, d_ff, vocab_size, dropout)
+    print(f"模型已创建，总参数量: {sum(p.numel() for p in model.parameters())/1e6:.2f}M")
 
-# 4. 核心：向量化计算 (这是与C最大的不同)
-# 在C里，两个矩阵相加需要写嵌套 for 循环。
-# 在 PyTorch 里，直接用 + 即可，它会自动在底层用高效代码(或GPU)完成。
-a = torch.tensor([[1, 1], [1, 1]])
-b = torch.tensor([[2, 2], [2, 2]])
-c = a + b # 元素级相加
-print("a + b:\n", c)
+    # 3. 创建假数据 (batch_size=2)
+    batch_size = 2
+    src_len = 10 # 源序列长度
+    tgt_len = 12 # 目标序列长度
+    src = torch.randint(1, vocab_size, (batch_size, src_len))
+    tgt = torch.randint(1, vocab_size, (batch_size, tgt_len))
 
-# 矩阵乘法 (在 Transformer 中无处不在)
-d = torch.matmul(a, b) # 或者用 @ 符号: d = a @ b
-print("a @ b:\n", d)
+    # 4. 创建掩码
+    src_mask = None # 简化处理，真实场景需要padding mask
+    tgt_mask = generate_square_subsequent_mask(tgt_len)
+
+    # 5. 模型前向传播
+    print("\n开始进行一次前向传播测试...")
+    output = model(src, tgt, src_mask, tgt_mask)
+
+    # 6. 检查输出形状
+    print("输入 src 形状:", src.shape)
+    print("输入 tgt 形状:", tgt.shape)
+    print("输出 output 形状:", output.shape)
+
+    # 验证输出形状是否正确
+    expected_shape = (batch_size, tgt_len, vocab_size)
+    assert output.shape == expected_shape, f"形状不匹配! 期望得到 {expected_shape}, 实际得到 {output.shape}"
+    print("\n测试通过！模型结构和数据流基本正确。")
+
+if __name__ == '__main__':
+    run_test()

@@ -1,13 +1,9 @@
-# MyTransformer
-
 <div align="center">
   <img src="image/img.png" width="400"/>
 </div>
 
-
-
-
-
+# MyTransformer
+A simple implementation of Transformer in PyTorch.
 ## Tokenizer
 
 ## Embedding
