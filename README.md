@@ -1,5 +1,10 @@
 # MyTransformer
-<img src="image/img.png" style="width:400px; border-radius:10px;" />
+
+<img src="image/img.png" style="width:400px; border-radius:10px; display:block; margin:auto;" />
+
+
+
+
 
 ## Tokenizer
 
