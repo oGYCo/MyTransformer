@@ -1,6 +1,8 @@
 # MyTransformer
 
-<img src="image/img.png" style="width:400px; border-radius:10px; display:block; margin:auto;" />
+<div align="center">
+  <img src="image/img.png" width="400"/>
+</div>
 
 
 
